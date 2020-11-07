@@ -1,11 +1,6 @@
 import zlib from 'zlib';
 import path from 'path';
 
-import webpack from 'webpack';
-import findCacheDir from 'find-cache-dir';
-import cacache from 'cacache';
-
-import Webpack4Cache from '../src/Webpack4Cache';
 import CompressionPlugin from '../src/index';
 
 import {
@@ -17,25 +12,9 @@ import {
   getErrors,
   getWarnings,
   readAsset,
-  removeCache,
 } from './helpers/index';
 
-const cacheDir1 = findCacheDir({ name: 'compression-webpack-plugin-cache-1' });
-const cacheDir2 = findCacheDir({ name: 'compression-webpack-plugin-cache-2' });
-const cacheDir3 = findCacheDir({ name: 'compression-webpack-plugin-cache-3' });
-const cacheDir4 = findCacheDir({ name: 'compression-webpack-plugin-cache-4' });
-
 describe('CompressionPlugin', () => {
-  beforeAll(() => {
-    return Promise.all([
-      removeCache(),
-      cacache.rm.all(cacheDir1),
-      cacache.rm.all(cacheDir2),
-      cacache.rm.all(cacheDir3),
-      cacache.rm.all(cacheDir4),
-    ]);
-  });
-
   it('should work', async () => {
     expect.assertions(6);
 
@@ -246,27 +225,13 @@ describe('CompressionPlugin', () => {
   });
 
   it('should work and use memory cache without options in the "development" mode', async () => {
-    const getCacheDirectorySpy = jest
-      .spyOn(Webpack4Cache, 'getCacheDirectory')
-      .mockImplementation(() => {
-        return cacheDir1;
-      });
-
     const compiler = getCompiler('./entry.js', {}, { mode: 'development' });
 
     new CompressionPlugin().apply(compiler);
 
     const stats = await compile(compiler);
 
-    if (webpack.version[0] === '4') {
-      expect(
-        Object.keys(stats.compilation.assets).filter(
-          (assetName) => stats.compilation.assets[assetName].emitted
-        ).length
-      ).toBe(7);
-    } else {
-      expect(stats.compilation.emittedAssets.size).toBe(7);
-    }
+    expect(stats.compilation.emittedAssets.size).toBe(7);
 
     expect(getAssetsNameAndSize(stats)).toMatchSnapshot('assets');
     expect(getWarnings(stats)).toMatchSnapshot('warnings');
@@ -275,33 +240,17 @@ describe('CompressionPlugin', () => {
     await new Promise(async (resolve) => {
       const newStats = await compile(compiler);
 
-      if (webpack.version[0] === '4') {
-        expect(
-          Object.keys(newStats.compilation.assets).filter(
-            (assetName) => newStats.compilation.assets[assetName].emitted
-          ).length
-        ).toBe(0);
-      } else {
-        expect(newStats.compilation.emittedAssets.size).toBe(0);
-      }
+      expect(newStats.compilation.emittedAssets.size).toBe(0);
 
       expect(getAssetsNameAndSize(newStats)).toMatchSnapshot('assets');
       expect(getWarnings(newStats)).toMatchSnapshot('errors');
       expect(getErrors(newStats)).toMatchSnapshot('warnings');
-
-      getCacheDirectorySpy.mockRestore();
 
       resolve();
     });
   });
 
   it('should work and use memory cache when the "cache" option is "true"', async () => {
-    const getCacheDirectorySpy = jest
-      .spyOn(Webpack4Cache, 'getCacheDirectory')
-      .mockImplementation(() => {
-        return cacheDir2;
-      });
-
     const compiler = getCompiler(
       './entry.js',
       {},
@@ -319,15 +268,7 @@ describe('CompressionPlugin', () => {
 
     const stats = await compile(compiler);
 
-    if (webpack.version[0] === '4') {
-      expect(
-        Object.keys(stats.compilation.assets).filter(
-          (assetName) => stats.compilation.assets[assetName].emitted
-        ).length
-      ).toBe(7);
-    } else {
-      expect(stats.compilation.emittedAssets.size).toBe(7);
-    }
+    expect(stats.compilation.emittedAssets.size).toBe(7);
 
     expect(getAssetsNameAndSize(stats)).toMatchSnapshot('assets');
     expect(getWarnings(stats)).toMatchSnapshot('warnings');
@@ -336,33 +277,17 @@ describe('CompressionPlugin', () => {
     await new Promise(async (resolve) => {
       const newStats = await compile(compiler);
 
-      if (webpack.version[0] === '4') {
-        expect(
-          Object.keys(newStats.compilation.assets).filter(
-            (assetName) => newStats.compilation.assets[assetName].emitted
-          ).length
-        ).toBe(0);
-      } else {
-        expect(newStats.compilation.emittedAssets.size).toBe(0);
-      }
+      expect(newStats.compilation.emittedAssets.size).toBe(0);
 
       expect(getAssetsNameAndSize(newStats)).toMatchSnapshot('assets');
       expect(getWarnings(newStats)).toMatchSnapshot('errors');
       expect(getErrors(newStats)).toMatchSnapshot('warnings');
-
-      getCacheDirectorySpy.mockRestore();
 
       resolve();
     });
   });
 
   it('should work and use memory cache when the "cache" option is "true" and the asset has been changed', async () => {
-    const getCacheDirectorySpy = jest
-      .spyOn(Webpack4Cache, 'getCacheDirectory')
-      .mockImplementation(() => {
-        return cacheDir3;
-      });
-
     const compiler = getCompiler(
       './entry.js',
       {},
@@ -380,15 +305,7 @@ describe('CompressionPlugin', () => {
 
     const stats = await compile(compiler);
 
-    if (webpack.version[0] === '4') {
-      expect(
-        Object.keys(stats.compilation.assets).filter(
-          (assetName) => stats.compilation.assets[assetName].emitted
-        ).length
-      ).toBe(7);
-    } else {
-      expect(stats.compilation.emittedAssets.size).toBe(7);
-    }
+    expect(stats.compilation.emittedAssets.size).toBe(7);
 
     expect(getAssetsNameAndSize(stats)).toMatchSnapshot('assets');
     expect(getWarnings(stats)).toMatchSnapshot('warnings');
@@ -399,33 +316,17 @@ describe('CompressionPlugin', () => {
     await new Promise(async (resolve) => {
       const newStats = await compile(compiler);
 
-      if (webpack.version[0] === '4') {
-        expect(
-          Object.keys(newStats.compilation.assets).filter(
-            (assetName) => newStats.compilation.assets[assetName].emitted
-          ).length
-        ).toBe(2);
-      } else {
-        expect(newStats.compilation.emittedAssets.size).toBe(2);
-      }
+      expect(newStats.compilation.emittedAssets.size).toBe(2);
 
       expect(getAssetsNameAndSize(newStats)).toMatchSnapshot('assets');
       expect(getWarnings(newStats)).toMatchSnapshot('errors');
       expect(getErrors(newStats)).toMatchSnapshot('warnings');
-
-      getCacheDirectorySpy.mockRestore();
 
       resolve();
     });
   });
 
   it('should work and use memory cache when the "cache" option is "true" with multiple plugins', async () => {
-    const getCacheDirectorySpy = jest
-      .spyOn(Webpack4Cache, 'getCacheDirectory')
-      .mockImplementation(() => {
-        return cacheDir4;
-      });
-
     const compiler = getCompiler(
       './entry.js',
       {},
@@ -457,15 +358,7 @@ describe('CompressionPlugin', () => {
 
     const stats = await compile(compiler);
 
-    if (webpack.version[0] === '4') {
-      expect(
-        Object.keys(stats.compilation.assets).filter(
-          (assetName) => stats.compilation.assets[assetName].emitted
-        ).length
-      ).toBe(14);
-    } else {
-      expect(stats.compilation.emittedAssets.size).toBe(14);
-    }
+    expect(stats.compilation.emittedAssets.size).toBe(14);
 
     expect(getAssetsNameAndSize(stats)).toMatchSnapshot('assets');
     expect(getWarnings(stats)).toMatchSnapshot('warnings');
@@ -474,21 +367,11 @@ describe('CompressionPlugin', () => {
     await new Promise(async (resolve) => {
       const newStats = await compile(compiler);
 
-      if (webpack.version[0] === '4') {
-        expect(
-          Object.keys(newStats.compilation.assets).filter(
-            (assetName) => newStats.compilation.assets[assetName].emitted
-          ).length
-        ).toBe(0);
-      } else {
-        expect(newStats.compilation.emittedAssets.size).toBe(0);
-      }
+      expect(newStats.compilation.emittedAssets.size).toBe(0);
 
       expect(getAssetsNameAndSize(newStats)).toMatchSnapshot('assets');
       expect(getWarnings(newStats)).toMatchSnapshot('errors');
       expect(getErrors(newStats)).toMatchSnapshot('warnings');
-
-      getCacheDirectorySpy.mockRestore();
 
       resolve();
     });
@@ -510,21 +393,11 @@ describe('CompressionPlugin', () => {
       }
     );
 
-    new CompressionPlugin(
-      webpack.version[0] === '4' ? { cache: false } : {}
-    ).apply(compiler);
+    new CompressionPlugin().apply(compiler);
 
     const stats = await compile(compiler);
 
-    if (webpack.version[0] === '4') {
-      expect(
-        Object.keys(stats.compilation.assets).filter(
-          (assetName) => stats.compilation.assets[assetName].emitted
-        ).length
-      ).toBe(7);
-    } else {
-      expect(stats.compilation.emittedAssets.size).toBe(7);
-    }
+    expect(stats.compilation.emittedAssets.size).toBe(7);
 
     expect(getAssetsNameAndSize(stats)).toMatchSnapshot('assets');
     expect(getWarnings(stats)).toMatchSnapshot('warnings');
@@ -533,15 +406,7 @@ describe('CompressionPlugin', () => {
     await new Promise(async (resolve) => {
       const newStats = await compile(compiler);
 
-      if (webpack.version[0] === '4') {
-        expect(
-          Object.keys(newStats.compilation.assets).filter(
-            (assetName) => newStats.compilation.assets[assetName].emitted
-          ).length
-        ).toBe(7);
-      } else {
-        expect(newStats.compilation.emittedAssets.size).toBe(7);
-      }
+      expect(newStats.compilation.emittedAssets.size).toBe(7);
 
       expect(getAssetsNameAndSize(newStats)).toMatchSnapshot('assets');
       expect(getWarnings(newStats)).toMatchSnapshot('errors');
